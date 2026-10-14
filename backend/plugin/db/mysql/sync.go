@@ -349,7 +349,7 @@ func (d *Driver) SyncDBSchema(ctx context.Context) (*metadatapb.DatabaseSchemaMe
 			COLUMN_TYPE,
 			IFNULL(CHARACTER_SET_NAME, ''),
 			IFNULL(COLLATION_NAME, ''),
-			QUOTE(COLUMN_COMMENT),
+			QUOTE(IFNULL(COLUMN_COMMENT, '')),
 			convert(GENERATION_EXPRESSION using BINARY),
 			EXTRA,
 			%s
@@ -368,7 +368,7 @@ func (d *Driver) SyncDBSchema(ctx context.Context) (*metadatapb.DatabaseSchemaMe
 			COLUMN_TYPE,
 			IFNULL(CHARACTER_SET_NAME, ''),
 			IFNULL(COLLATION_NAME, ''),
-			QUOTE(COLUMN_COMMENT),
+			QUOTE(IFNULL(COLUMN_COMMENT, '')),
 			NULL,
 			EXTRA,
 			%s
