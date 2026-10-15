@@ -571,11 +571,8 @@ func (d *Driver) SyncDBSchema(ctx context.Context) (*metadatapb.DatabaseSchemaMe
 			IFNULL(TABLES.INDEX_LENGTH, 0),
 			IFNULL(TABLES.DATA_FREE, 0),
 			IFNULL(TABLES.CREATE_OPTIONS, ''),
-			QUOTE(IFNULL(TABLES.TABLE_COMMENT, '')),
-			IFNULL(CCSA.CHARACTER_SET_NAME, '')
+			QUOTE(IFNULL(TABLES.TABLE_COMMENT, ''))
 		FROM information_schema.TABLES TABLES
-		LEFT JOIN information_schema.COLLATION_CHARACTER_SET_APPLICABILITY CCSA
-		ON TABLES.TABLE_COLLATION = CCSA.COLLATION_NAME
 		WHERE TABLE_SCHEMA = ?
 		ORDER BY TABLE_NAME`
 	tableRows, err := d.db.QueryContext(ctx, tableQuery, d.databaseName)
@@ -584,7 +581,7 @@ func (d *Driver) SyncDBSchema(ctx context.Context) (*metadatapb.DatabaseSchemaMe
 	}
 	defer tableRows.Close()
 	for tableRows.Next() {
-		var tableName, tableType, engine, collation, createOptions, comment, charset string
+		var tableName, tableType, engine, collation, createOptions, comment string
 		var rowCount, dataSize, indexSize, dataFree int64
 		// Workaround TiDB bug https://github.com/pingcap/tidb/issues/27970
 		var tableCollation sql.NullString
@@ -599,10 +596,12 @@ func (d *Driver) SyncDBSchema(ctx context.Context) (*metadatapb.DatabaseSchemaMe
 			&dataFree,
 			&createOptions,
 			&comment,
-			&charset,
 		); err != nil {
 			return nil, err
 		}
+		// A collation name starts with its charset name. Derived here because AnalyticDB MySQL
+		// lacks information_schema.COLLATION_CHARACTER_SET_APPLICABILITY.
+		charset, _, _ := strings.Cut(collation, "_")
 		// Quoted string has a single quote around it and is escaped by QUOTE().
 		comment = stripSingleQuote(comment)
 
