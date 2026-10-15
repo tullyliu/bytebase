@@ -1337,7 +1337,7 @@ func (d *Driver) listPartitionTables(ctx context.Context, databaseName string) (
 			TABLE_NAME,
 			PARTITION_NAME,
 			SUBPARTITION_NAME,
-			PARTITION_METHOD,
+			IFNULL(PARTITION_METHOD, ''),
 			SUBPARTITION_METHOD,
 			PARTITION_EXPRESSION,
 			SUBPARTITION_EXPRESSION,
