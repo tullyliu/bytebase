@@ -545,9 +545,6 @@ func (*Store) patchTaskRunStatusImpl(ctx context.Context, txn *sql.Tx, patch *Ta
 	set.Comma("updated_at = ?, status = ?", time.Now(), patch.Status.String())
 
 	if v := patch.ResultProto; v != nil {
-		// Engine errors can carry NUL or invalid UTF-8 (AnalyticDB appends NUL), which jsonb or
-		// protojson rejects; failing here would leave the task run RUNNING and block its database.
-		v.Detail = common.SanitizeJSONString(v.Detail)
 		resultBytes, err := protojson.Marshal(v)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to marshal task run result")
