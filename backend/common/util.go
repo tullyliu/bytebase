@@ -196,3 +196,8 @@ func Uniq[T comparable](array []T) []T {
 
 	return res
 }
+
+// SanitizeJSONString removes NUL and invalid UTF-8, which PostgreSQL jsonb and protojson reject.
+func SanitizeJSONString(s string) string {
+	return strings.ToValidUTF8(strings.ReplaceAll(s, "\x00", ""), "\uFFFD")
+}
